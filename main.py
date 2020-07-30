@@ -1,4 +1,4 @@
-import discord, os, asyncio
+import discord, os, asyncio, random
 from keep_alive import keep_alive
 
 app = discord.Client()
@@ -42,7 +42,43 @@ async def on_message(message):
         await message.channel.send(embed = tmpembed)
         return
 
-
+    elif message.content.startswith("z.play"):
+        gamenumber = message.content[7:]
+        if gamenumber == "1":
+            tmpembed = discord.Embed(title = "🖐️ 가위바위보", description = "가위, 바위, 보 중 하나를 선택하세요")
+            main = await message.channel.send(embed = tmpembed)
+            await main.add_reaction("✌️")
+            await main.add_reaction("✊")
+            await main.add_reaction("🖐️")
+            hands = ["✌️", "✊", "🖐️"]
+            def check(reaction, user):
+                return user == message.author and str(reaction.emoji) in hands
+            try:
+                reaction, user = await app.wait_for('reaction_add', timeout = 5, check = check)
+            except asyncio.TimeoutError:
+                tmpembed = discord.Embed(title = "당신은 패배하였습니다!", description = "선택하는 데 시간이 너무 오래 걸렸어요!")
+                await message.channel.send(embed = tmpembed)
+                return
+            else:
+                choiceOfCpu = random.choice(hands)
+                if choiceOfCpu == str(reaction.emoji):
+                    tmpembed = discord.Embed(title = "비겼습니다!", description = f"봇도 {choiceOfCpu}를 냈어요!")
+                    await message.channel.send(embed = tmpembed)
+                    return
+                winlist = [["✊", "✌️"], ["✌️", "🖐️"], ["🖐️", "✊"]]
+                loselist = [["✌", "✊️"], ["️🖐️", "️✌️"], ["✊", "🖐️"]]
+                if [str(reaction.emoji), choiceOfCpu] in winlist:
+                    tmpembed = discord.Embed(title = "당신이 이겼습니다!", description = f"봇은 {choiceOfCpu}를 냈어요!")
+                    await message.channel.send(embed = tmpembed)
+                    return
+                if [str(reaction.emoji), choiceOfCpu] in loselist:
+                    tmpembed = discord.Embed(title = "봇이 이겼습니다!", description = f"봇은 {choiceOfCpu}를 냈어요!")
+                    await message.channel.send(embed = tmpembed)
+                    return
+        else:
+            tmpembed = discord.Embed(title = "Unknown Minigame Number", description = "Send `z.help`to show minigames list")
+            await message.channel.send(embed = tmpembed)
+        
     if message.content.startswith("z.eval") and isModer(message.author):
         await message.channel.send(eval(message.content[7:]))
 
