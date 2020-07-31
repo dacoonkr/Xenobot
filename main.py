@@ -5,7 +5,8 @@ app = discord.Client()
 prefix = '='
 
 minigames = [
-    ["🖐️ 가위바위보", "컴퓨터와 가위바위보 게임을 합니다."]
+    ["🖐️ 가위바위보", "봇과 가위바위보 게임을 합니다."],
+    ["↕️ 업다운", "봇이 정한 숫자로 업다운 게임을 합니다."]
 ]
 
 moderators = {
@@ -45,7 +46,9 @@ async def on_message(message):
     elif message.content.startswith("z.play"):
         gamenumber = message.content[7:]
         if gamenumber == "1":
-            tmpembed = discord.Embed(title = "🖐️ 가위바위보", description = "가위, 바위, 보 중 하나를 선택하세요")
+            tmpembed = discord.Embed(title = "🖐️ 가위바위보", description = "각자 가위 또는 바위 또는 보를 내서 승부를 결정하는 게임입니다. 가위는 보를, 바위는 가위를, 보는 묵을 이길 수 있습니다. 두 명이 같은 손을 낼 시 비깁니다.")
+            await message.channel.send(embed = tmpembed)
+            tmpembed = discord.Embed(title = "가위, 바위, 보 중 하나를 선택하세요")
             main = await message.channel.send(embed = tmpembed)
             await main.add_reaction("✌️")
             await main.add_reaction("✊")
@@ -56,25 +59,60 @@ async def on_message(message):
             try:
                 reaction, user = await app.wait_for('reaction_add', timeout = 5, check = check)
             except asyncio.TimeoutError:
-                tmpembed = discord.Embed(title = "당신은 패배하였습니다!", description = "선택하는 데 시간이 너무 오래 걸렸어요!")
+                tmpembed = discord.Embed(title = "당신은 패배하였습니다!", description = "선택하는 데 시간이 너무 오래 걸렸습니다!")
                 await message.channel.send(embed = tmpembed)
                 return
             else:
                 choiceOfCpu = random.choice(hands)
                 if choiceOfCpu == str(reaction.emoji):
-                    tmpembed = discord.Embed(title = "비겼습니다!", description = f"봇도 {choiceOfCpu}를 냈어요!")
+                    tmpembed = discord.Embed(title = "비겼습니다!", description = f"봇도 {choiceOfCpu}를 냈습니다!")
                     await message.channel.send(embed = tmpembed)
                     return
-                winlist = [["✊", "✌️"], ["✌️", "🖐️"], ["🖐️", "✊"]]
-                loselist = [["✌", "✊️"], ["️🖐️", "️✌️"], ["✊", "🖐️"]]
-                if [str(reaction.emoji), choiceOfCpu] in winlist:
-                    tmpembed = discord.Embed(title = "당신이 이겼습니다!", description = f"봇은 {choiceOfCpu}를 냈어요!")
+                winlist = ["✊✌️", "✌️🖐️", "🖐️✊"]
+                if str(reaction.emoji) + choiceOfCpu in winlist:
+                    tmpembed = discord.Embed(title = "당신이 이겼습니다!", description = f"봇은 {choiceOfCpu}를 냈습니다!")
                     await message.channel.send(embed = tmpembed)
                     return
-                if [str(reaction.emoji), choiceOfCpu] in loselist:
-                    tmpembed = discord.Embed(title = "봇이 이겼습니다!", description = f"봇은 {choiceOfCpu}를 냈어요!")
+                else:
+                    tmpembed = discord.Embed(title = "봇이 이겼습니다!", description = f"봇은 {choiceOfCpu}를 냈습니다!")
                     await message.channel.send(embed = tmpembed)
                     return
+        
+        elif gamenumber == "2":
+            tmpembed = discord.Embed(title = "↕️ 업다운", description = "1~100까지 숫자중 하나를 골랐을 때 그것을 맞추는 게임입니다. 기회는 총 5번 있습니다. 숫자를 추측하면 봇이 생각한 숫자보다 큰지 작은지 알려줍니다.")
+            await message.channel.send(embed = tmpembed)
+
+            choiceOfCpu = random.randint(1, 100)
+            before = ""
+
+            for x in range(5):
+                tmpembed = discord.Embed(title = f"{before}{5 - x}번의 기회가 남았습니다.", description = "1~100까지 숫자중 하나를 고르세요.")
+                await message.channel.send(embed = tmpembed)
+                def check(msg):
+                    return msg.author == message.author
+                try:
+                    msg = await app.wait_for('message', timeout = 10, check = check)
+                except asyncio.TimeoutError:
+                    tmpembed = discord.Embed(title = "봇이 승리하였습니다!", description = "선택하는 데 시간이 너무 오래 걸렸습니다!")
+                    await message.channel.send(embed = tmpembed)
+                    return
+                else:
+                    try: a = int(msg.content)
+                    except: before = "숫자를 입력해 주세요. "
+                    else:
+                        if choiceOfCpu == a:
+                            tmpembed = discord.Embed(title = "당신이 이겼습니다!", description = f"봇이 생각한 숫자는 {choiceOfCpu}였습니다.")
+                            await message.channel.send(embed = tmpembed)
+                            return
+                        elif choiceOfCpu > a:
+                            before = f"{a}보다 큽니다! "
+                        else:
+                            before = f"{a}보다 작습니다! "
+            
+            tmpembed = discord.Embed(title = "봇이 이겼습니다!", description = f"봇이 생각한 숫자는 {choiceOfCpu}였습니다.")
+            await message.channel.send(embed = tmpembed)
+
+
         else:
             tmpembed = discord.Embed(title = "Unknown Minigame Number", description = "Send `z.help`to show minigames list")
             await message.channel.send(embed = tmpembed)
