@@ -43,6 +43,10 @@ async def on_message(message):
         await message.channel.send(embed = tmpembed)
         return
 
+    elif message.content == "z.ping":
+        tmpembed = discord.Embed(title = "🏓 Pong!", description = f"{str(app.latency * 1000)[:6]}ms")
+        await message.channel.send(embed = tmpembed)
+
     elif message.content.startswith("z.play"):
         gamenumber = message.content[7:]
         if gamenumber == "1":
